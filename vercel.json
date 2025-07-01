@@ -16,7 +16,7 @@
       }
     },
     {
-      "src": "frontend/package.json", 
+      "src": "frontend/package.json",
       "use": "@vercel/static-build",
       "config": {
         "installCommand": "npm install", 
@@ -30,7 +30,8 @@
       "src": "/api/(.*)",
       "dest": "backend/index.py" 
     },
-    { 
+    {
+      "src": "/(.*)",
       "dest": "frontend/build/$1" 
     }
   ],
