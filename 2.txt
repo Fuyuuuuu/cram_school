@@ -1,0 +1,114 @@
+tuition-management-system/  <-- 專案根目錄 (例如: Git 倉庫的根)
+├── frontend/                     # React 前端應用程式 (Vercel 部署為靜態網站)
+│   ├── public/
+│   ├── src/
+│   │   ├── assets/
+│   │   ├── components/
+│   │   ├── contexts/
+│   │   ├── data/
+│   │   ├── hooks/
+│   │   ├── layout/
+│   │   ├── modules/
+│   │   │   ├── students/
+│   │   │   ├── classes/
+│   │   │   ├── finance/
+│   │   │   ├── calendar/
+│   │   │   └── common/
+│   │   ├── utils/
+│   │   ├── App.js
+│   │   ├── index.js
+│   │   └── index.css
+│   ├── .env.development          # 前端開發環境變數 (本地 API URL)
+│   ├── .env.production           # 前端生產環境變數 (Vercel API URL)
+│   ├── .gitignore                # Git 忽略文件 (前端部分)
+│   ├── package.json              # 前端專案配置及依賴
+│   └── README.md
+│
+├── backend/                      # FastAPI 後端應用程式 (Vercel 部署為 Serverless Functions)
+│   ├── main.py                   # (已移到 api/index.py)
+│   ├── models.py                 # 資料庫模型和 API 數據模型
+│   ├── database.py               # 資料庫連接引擎及會話管理
+│   ├── crud.py                   # 資料庫的通用 CRUD 操作邏輯
+│   ├── requirements.txt          # Python 依賴套件列表
+│   ├── api/                      # Vercel Serverless Functions 的入口目錄
+│   │   └── index.py              # FastAPI 應用程式的核心入口 (原 main.py 內容)
+│   └── .gitignore                # Git 忽略文件 (後端部分)
+│
+├── .gitignore                    # 總體專案的 Git 忽略文件 (適用於頂層，例如 `.env`)
+├── vercel.json                   # **Vercel 部署配置文件 (部署核心)**
+└── README.md                     # 專案總體說明
+
+
+
+一、 React 前端 (frontend/)
+這是使用者直接互動的應用程式介面。它將被 Vercel 構建為靜態文件並部署到 CDN。
+
+frontend/ 目錄結構及文件功能：
+
+public/：
+index.html: **單頁應用程式 (SPA) 的 HTML 進入點。**所有 React 內容都會被掛載並渲染到這個文件中。
+favicon.ico: 網站的瀏覽器圖標。
+manifest.json: 網路應用程式清單文件，用於漸進式網路應用程式 (PWA) 配置，定義應用程式的名稱、圖標、主題顏色等。
+src/：存放所有 React 應用程式的原始碼。
+assets/: 存放靜態資源，這些資源通常在應用程式編譯後直接提供給瀏覽器。
+images/: 存放應用程式中使用的圖片文件，例如 logo.png、背景圖等。
+fonts/: 存放自定義字體文件。
+icons/: 存放應用程式使用的圖標文件 (例如 SVG 或其他圖片格式)。
+components/: 存放可重用的 UI 組件。這些組件通常不包含複雜的業務邏輯，只負責 UI 的展示和接收 props。
+MessageDisplay.js: 用於顯示全局提示或錯誤訊息的 React 組件。
+ConfirmationModal.js: 通用確認彈窗組件，用於執行破壞性操作前的二次確認。
+Button.js, InputField.js, Table.js, ModalBase.js: 其他可重用的基礎 UI 元素。
+contexts/: 存放 React Context API 相關的代碼，用於在組件樹中共享全局狀態，避免 props drilling。
+AuthContext.js: 例如：用於管理用戶認證狀態（登入/登出狀態、用戶資訊）。
+ThemeContext.js: 例如：管理應用程式的主題切換（亮色/暗色模式）。
+data/: 存放應用程式的初始數據或開發時的模擬數據。這些數據在與後端集成後會被移除或僅用於本地測試。
+initialStudents.js: 硬編碼的學生數據陣列，用於本地開發時快速啟動。
+initialClasses.js: 硬編碼的課程數據陣列。
+initialTransactions.js: 硬編碼的交易數據陣列。
+hooks/: 存放自定義 React Hooks，用於封裝可重用的邏輯和狀態管理。
+useTuitionData.js: 這是最核心的 Hook。它將原先龐大 App.js 中所有與學生、課程、會話、交易相關的 useState 狀態、它們的 set 函數以及所有與後端 API 交互的 handle 函數（例如 handleAddStudent、handleUpdateClass 等）都集中到這裡。這樣 App.js 就能保持精簡，只專注於頁面佈局和路由。
+useForm.js: 例如：用於管理通用表單輸入狀態和驗證的 Hook。
+layout/: 存放應用程式的整體佈局組件。
+Header.js: 導航欄組件，包含切換頁面的按鈕和應用程式標題。
+Footer.js: 頁腳組件，通常包含版權資訊。
+AppLayout.js: 一個高階組件，整合 Header、Footer 和主要內容區域，提供應用程式的通用框架。
+modules/: 應用程式的核心功能模塊。每個模塊都是一個獨立的、自包含的功能區塊。
+students/: 學生管理相關的功能。
+StudentManagementPage.js: 學生管理頁面組件，負責呈現學生列表、新增/編輯表單和相關模態視窗的整體邏輯。
+StudentList.js: 僅負責顯示學生列表的子組件。
+AddEditStudentForm.js: 用於新增或編輯學生資料的表單組件。
+StudentPaymentModal.js: 彈出式視窗，用於管理單一學生的繳費記錄。
+StudentSummaryModal.js: 彈出式視窗，顯示學生的課程總覽和出缺席詳情。
+classes/: 課程管理相關的功能。
+ClassManagementPage.js: 課程管理頁面組件，呈現課程列表、新增/編輯表單等。
+ClassList.js: 顯示課程列表的子組件。
+AddEditClassForm.js: 用於新增或編輯課程資料的表單組件。
+EnrolledStudentsModal.js: 彈出式視窗，顯示某課程已報名的學生列表。
+ClassCalendarModal.js: 彈出式日曆，用於調整單一課程的排課日期和處理順延。
+finance/: 財務管理相關的功能。
+FinanceManagementPage.js: 財務管理頁面組件，包含儀表板和交易列表。
+FinancialDashboard.js: 顯示財務概覽（如本月收支）的組件。
+ReceiptModal.js: 顯示繳費收據的模態視窗。
+PaymentNoticeModal.js: 顯示繳費通知單的模態視窗。
+CombinedPaymentPrintModal.js: 顯示綜合繳費通知書與明細的模態視窗。
+calendar/: 日曆總覽功能。
+CalendarOverviewPage.js: 日曆總覽頁面，顯示每月課程排程。
+DailySessionsAttendanceModal.js: 彈出式視窗，顯示某一天所有排定的課程，並進入點名流程。
+common/: 存放跨多個模塊共用的特定邏輯或組件。
+HistoryClassesPage.js: 顯示歷史課程列表的頁面。
+SessionAttendanceModal.js: 通用的點名模態視窗，用於具體修改一堂課中每個學生的點名狀態。
+utils/: 存放不直接是 React 組件，但提供通用功能的輔助文件。
+api.js: 封裝所有與後端 API 交互的函數（例如 fetch 或 axios 的實例和請求函數），集中管理 API 請求邏輯。
+dataTransformers.js: 包含數據格式轉換函數，例如將 React 前端常用的 camelCase 格式轉換為後端和資料庫使用的 snake_case，以及反向轉換。
+helpers.js: 存放其他通用的輔助函數，例如日期處理、字串處理、驗證函數等。
+App.js: **React 應用程式的根組件，但高度精簡。**它主要負責：
+導入並使用 useTuitionData Hook 來獲取所有必要的狀態和數據操作函數。
+根據 currentPage 狀態條件渲染不同的功能模塊（如 StudentManagementPage、ClassManagementPage 等）。
+渲染全局的佈局組件 (AppLayout) 和通用模態視窗（如 ConfirmationModal 等）。
+index.js: React 應用程式的 JavaScript 進入點。負責將 App 組件渲染到 public/index.html 中的 HTML 元素上。
+index.css: 全局 CSS 樣式文件。通常用於引入 Tailwind CSS 的基礎樣式或定義其他應用程式級別的通用樣式。
+.env.development: 前端開發環境變數文件。例如：REACT_APP_API_BASE_URL=http://localhost:8000 (指向本地開發中的 FastAPI 後端)。
+.env.production: 前端生產環境變數文件。例如：REACT_APP_API_BASE_URL=https://[您的Vercel後端服務域名].vercel.app/api (指向部署在 Vercel 上的 FastAPI 後端)。
+.gitignore: Git 忽略文件，指定哪些文件或目錄不應提交到版本控制系統（例如 node_modules/、build/、.env*）。
+package.json: Node.js 專案配置文件。定義了前端專案的元數據（名稱、版本），所有 npm 依賴套件（如 react, react-dom, tailwindcss 等），以及可運行的腳本命令（如 start, build）。
+README.md: 前端專案的說明文件，包括如何安裝依賴、運行開發伺服器、構建和部署指南。

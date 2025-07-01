@@ -1,0 +1,72 @@
+ FastAPI 後端 (backend/)
+這是提供 API 服務和與 Supabase 資料庫交互的後端應用程式。它將被 Vercel 部署為 Serverless Functions。
+
+backend/ 目錄結構及文件功能：
+
+api/: **Vercel Serverless Functions 的入口目錄。**Vercel 會檢測這個目錄下的文件並將它們部署為函數。
+index.py: FastAPI 應用程式的核心入口。
+導入 FastAPI 實例，但其變數名必須為 api (api = FastAPI(...)) 以符合 Vercel 的慣例。
+配置 CORS (跨域資源共享)，確保前端應用程式可以訪問。
+定義所有 RESTful API 端點（路由），例如 /students、/classes、/transactions 等，並使用 Depends(get_session) 注入資料庫會話。
+包含應用程式啟動事件 @api.on_event("startup")，用於初始化資料庫表格 (create_db_and_tables()) 和填充初始數據 (populate_initial_data())。
+models.py: 定義資料庫表格結構和 API 數據模型 (使用 SQLModel)。
+定義每個實體（例如 Student、Class、Session、Transaction）的資料庫模型，繼承 SQLModel 並標記 table=True。
+這些模型同時也是 Pydantic 模型，用於 API 請求和響應的數據驗證和序列化。
+定義用於數據更新的 Update 模型（例如 StudentUpdate），允許部分更新。
+確保欄位命名符合 Python 慣例（例如 snake_case：current_class），並在模型中定義正確的資料庫欄位類型。
+database.py: 處理資料庫連接和會話管理。
+從 .env 文件讀取 DATABASE_URL 環境變數。
+創建 SQLAlchemy 資料庫引擎，用於與 Supabase 的 PostgreSQL 實例建立連接。
+create_db_and_tables() 函數：用於根據 models.py 中的定義，在資料庫中自動創建或檢查表格結構。
+get_session() 函數：一個 Python 生成器函數，用於 FastAPI 的依賴注入，確保每個 API 請求都能獲取一個獨立的資料庫會話，並在請求結束後自動關閉。
+crud.py: 存放資料庫的通用 CRUD (Create, Read, Update, Delete) 操作邏輯。
+包含通用的函數，如 create_item、get_items、get_item_by_id、update_item、delete_item，這些函數可以重用於不同的資料庫模型。
+包含將前端傳入數據格式（camelCase）轉換為後端/資料庫格式（snake_case）的輔助函數，以處理前端和後端之間的命名約定差異。
+包含填充初始數據到資料庫的邏輯 (populate_initial_data())，僅在相關資料庫表為空時執行。
+requirements.txt: 列出所有 Python 依賴套件及其版本。Vercel 會讀取此文件來安裝運行後端所需的套件。
+主要包括：fastapi、uvicorn (在 Vercel 環境下可能不需要直接運行，但作為依賴）、sqlmodel、psycopg2-binary (PostgreSQL 資料庫驅動)、python-dotenv (用於本地開發時讀取 .env 文件)。
+.gitignore: Git 忽略文件，指定後端部分不應提交到版本控制的敏感文件（例如 __pycache__/、*.pyc、.env）。
+三、 Supabase 資料庫 (邏輯結構)
+Supabase 是一個託管的後端即服務 (BaaS) 平台，提供 PostgreSQL 資料庫、身份驗證、文件儲存等服務。它位於雲端，因此不會是您本地專案的一個文件目錄。
+
+專案 (Project)：在 Supabase 網站上建立的頂層容器，管理所有相關的資料庫、API 金鑰、用戶和服務。
+PostgreSQL 資料庫：
+表格 (Tables)：在 Supabase 儀表板中手動創建的資料庫表格，其結構應與 backend/models.py 中定義的 SQLModel 保持一致。包括 students, classes, sessions, transactions。
+欄位 (Columns)：每個表格中的具體資料項，例如 students 表中的 id、name、age、current_class (注意：current_class 是資料庫實際欄位名，對應前端的 currentClass)。
+Row Level Security (RLS) 策略：Supabase 的核心安全功能，用於精細控制資料庫行級別的數據訪問權限。在開發階段可能設為允許所有訪問，但在生產環境中必須配置嚴格的 RLS 以確保數據安全。
+連接字串 (Connection String)：您從 Supabase 專案儀表板獲取的一組憑證，用於 FastAPI 後端連接到您的 PostgreSQL 資料庫。這個字串會安全地儲存在 Vercel 專案的環境變數中。
+四、 Vercel 部署配置 (vercel.json)
+這是位於專案根目錄下的核心配置文件，指導 Vercel 如何構建和部署您的專案。
+
+JSON
+
+// vercel.json
+{
+  "version": 2,  // 指定 Vercel 配置文件的版本
+  "builds": [    // 定義如何構建專案中的不同部分
+    {
+      "src": "frontend/package.json",      // 指向前端專案的入口 (Vercel 會自動檢測為 Node.js 專案)
+      "use": "@vercel/static-build",       // 使用 Vercel 內建的靜態構建器
+      "config": { "outputDirectory": "build" } // 告訴 Vercel React 應用程式打包後的靜態文件在哪裡 (npm run build 的結果)
+    },
+    {
+      "src": "backend/api/index.py",       // 指向後端 Serverless Function 的入口文件
+      "use": "@vercel/python",             // 使用 Vercel 內建的 Python 構建器
+      "config": { "runtime": "python3.9" } // 指定 Python 運行時版本 (請確保與您的 Python 依賴兼容)
+    }
+  ],
+  "routes": [    // 定義如何處理傳入的 HTTP 請求並將它們路由到正確的構建產物
+    {
+      "src": "/api/(.*)",  // 任何以 "/api/" 開頭的請求 (例如 /api/students)
+      "dest": "backend/api/index.py" // 都將被路由到後端的 Serverless Function 處理
+    },
+    {
+      "src": "/(.*)",       // 任何其他請求 (例如 /, /students 這些前端路由)
+      "dest": "frontend/$1"  // 都將路由到前端的靜態文件處理
+    }
+  ],
+  "env": {       // 定義應用程式在 Vercel 環境中的環境變數
+    "DATABASE_URL": "@database_url" // 引用在 Vercel 儀表板中設定的名稱為 `DATABASE_URL` 的環境變數
+                                    // (值是您 Supabase 的資料庫連接字串)
+  }
+}

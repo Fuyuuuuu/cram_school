@@ -1,0 +1,17 @@
+/* frontend/src/index.css */
+
+/* 引入 Tailwind CSS 的基本樣式、組件和實用工具 */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 你可以在這裡添加任何其他的全局 CSS 規則，例如： */
+body {
+  font-family: 'Inter', sans-serif; /* 設置全局字體 */
+}
+
+/* 針對特定元素進行的基礎重置或樣式 */
+/* 例如，如果您想為所有按鈕添加預設圓角 */
+button {
+  @apply rounded-md; /* 使用 Tailwind 的 @apply 指令 */
+}
