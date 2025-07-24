@@ -1,31 +1,40 @@
 {
   "version": 2,
   "rewrites": [
-    { 
-      "source": "/api/(.*)", 
-      "destination": "/api/" 
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/"
     }
   ],
   "builds": [
     {
       "src": "backend/api/index.py",
       "use": "@vercel/python",
-      "config": { 
-        "maxLambdaSize": "50mb", 
-        "pythonVersion": "3.11.0" 
+      "config": {
+        "maxLambdaSize": "50mb",
+        "pythonVersion": "3.11.0"
       }
     },
     {
-      "src": "frontend/package.json", 
+      "src": "frontend/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "installCommand": "npm install", 
+        "installCommand": "npm install",
         "buildCommand": "npm run build",
-        "outputDirectory": "build" 
+        "outputDirectory": "build"
       }
     }
   ],
-
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "backend/api/index.py"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "frontend/build/$1"
+    }
+  ],
   "env": {
     "NODE_ENV": "production",
     "REACT_APP_BACKEND_API_URL": "/api"
