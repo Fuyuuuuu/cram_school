@@ -8,7 +8,7 @@
   ],
   "builds": [
     {
-      "src": "backend/index.py",
+      "src": "backend/api/index.py",
       "use": "@vercel/python",
       "config": { 
         "maxLambdaSize": "50mb", 
