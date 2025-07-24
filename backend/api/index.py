@@ -1,3 +1,6 @@
+print("FastAPI application is starting up in Vercel environment...") # <-- Add this line at the very top
+
+
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
