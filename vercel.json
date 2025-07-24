@@ -12,7 +12,8 @@
       "use": "@vercel/python",
       "config": {
         "maxLambdaSize": "50mb",
-        "pythonVersion": "3.11.0"
+        "pythonVersion": "3.11.0",
+        "pythonPath": "backend"
       }
     },
     {

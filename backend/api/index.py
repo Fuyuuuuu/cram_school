@@ -3,12 +3,24 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from typing import List, Optional
-from datetime import date, datetime # 這裡保留 datetime 的導入
+from datetime import date, datetime
 
-# 導入我們定義的模型和 CRUD 操作
-from .. import models
-from .. import crud
-from ..database import SessionLocal, engine, get_db, Base # 確保導入 Base
+# 修改這裡的導入方式，改為絕對導入
+# 假設 Vercel 的 pythonPath 配置會將 'backend' 目錄添加到 PYTHONPATH
+# 這樣可以直接導入 'database', 'models', 'crud'
+from database import SessionLocal, engine, get_db, Base
+from models import (
+    StudentInDB, StudentCreate, StudentUpdate,
+    ClassInDB, ClassCreate, ClassUpdate,
+    SessionInDB, SessionCreate, SessionUpdate,
+    TransactionInDB, TransactionCreate, TransactionUpdate
+)
+from crud import (
+    create_student, get_student, get_students, update_student, delete_student,
+    create_class, get_class, get_classes, update_class, delete_class,
+    create_session, get_session, get_sessions_by_class, get_sessions_by_date, get_all_sessions, update_session, delete_session,
+    create_transaction_for_enrollment, get_transaction, get_transactions_by_student, get_all_transactions, update_transaction, delete_transaction
+)
 
 app = FastAPI(
     title="補習班管理系統 API",
@@ -49,143 +61,143 @@ app.add_middleware(
 )
 
 # --- 學生相關 API 端點 ---
-@app.post("/students/", response_model=models.StudentInDB, status_code=status.HTTP_201_CREATED)
-def create_student(student: models.StudentCreate, db: Session = Depends(get_db)):
-    db_student = crud.create_student(db=db, student=student)
+@app.post("/students/", response_model=StudentInDB, status_code=status.HTTP_201_CREATED)
+def create_student(student: StudentCreate, db: Session = Depends(get_db)):
+    db_student = create_student(db=db, student=student)
     return db_student # 直接返回 ORM 對象，Pydantic 將自動序列化
 
-@app.get("/students/", response_model=List[models.StudentInDB])
+@app.get("/students/", response_model=List[StudentInDB])
 def read_students(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    students = crud.get_students(db, skip=skip, limit=limit)
+    students = get_students(db, skip=skip, limit=limit)
     return students # 直接返回 ORM 對象列表
 
-@app.get("/students/{student_id}", response_model=models.StudentInDB)
+@app.get("/students/{student_id}", response_model=StudentInDB)
 def read_student(student_id: str, db: Session = Depends(get_db)):
-    db_student = crud.get_student(db, student_id=student_id)
+    db_student = get_student(db, student_id=student_id)
     if db_student is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
     return db_student # 直接返回 ORM 對象
 
-@app.put("/students/{student_id}", response_model=models.StudentInDB)
-def update_student(student_id: str, student: models.StudentUpdate, db: Session = Depends(get_db)):
-    db_student = crud.update_student(db, student_id=student_id, student=student)
+@app.put("/students/{student_id}", response_model=StudentInDB)
+def update_student(student_id: str, student: StudentUpdate, db: Session = Depends(get_db)):
+    db_student = update_student(db, student_id=student_id, student=student)
     if db_student is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
     return db_student # 直接返回 ORM 對象
 
 @app.delete("/students/{student_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_student(student_id: str, db: Session = Depends(get_db)):
-    success = crud.delete_student(db, student_id=student_id)
+    success = delete_student(db, student_id=student_id)
     if not success:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found or could not be deleted")
     return # 204 No Content 響應不包含消息體，所以直接 return
 
 # --- 課程相關 API 端點 ---
-@app.post("/classes/", response_model=models.ClassInDB, status_code=status.HTTP_201_CREATED)
-def create_class(cls: models.ClassCreate, db: Session = Depends(get_db)):
-    db_class = crud.create_class(db=db, cls=cls)
+@app.post("/classes/", response_model=ClassInDB, status_code=status.HTTP_201_CREATED)
+def create_class(cls: ClassCreate, db: Session = Depends(get_db)):
+    db_class = create_class(db=db, cls=cls)
     return db_class # 直接返回 ORM 對象
 
-@app.get("/classes/", response_model=List[models.ClassInDB])
+@app.get("/classes/", response_model=List[ClassInDB])
 def read_classes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    classes = crud.get_classes(db, skip=skip, limit=limit)
+    classes = get_classes(db, skip=skip, limit=limit)
     return classes # 直接返回 ORM 對象列表
 
-@app.get("/classes/{class_id}", response_model=models.ClassInDB)
+@app.get("/classes/{class_id}", response_model=ClassInDB)
 def read_class(class_id: str, db: Session = Depends(get_db)):
-    db_class = crud.get_class(db, class_id=class_id)
+    db_class = get_class(db, class_id=class_id)
     if db_class is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Class not found")
     return db_class # 直接返回 ORM 對象
 
-@app.put("/classes/{class_id}", response_model=models.ClassInDB)
-def update_class(class_id: str, cls: models.ClassUpdate, db: Session = Depends(get_db)):
-    db_class = crud.update_class(db, class_id=class_id, cls=cls)
+@app.put("/classes/{class_id}", response_model=ClassInDB)
+def update_class(class_id: str, cls: ClassUpdate, db: Session = Depends(get_db)):
+    db_class = update_class(db, class_id=class_id, cls=cls)
     if db_class is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Class not found")
     return db_class # 直接返回 ORM 對象
 
 @app.delete("/classes/{class_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_class(class_id: str, db: Session = Depends(get_db)):
-    success = crud.delete_class(db, class_id=class_id)
+    success = delete_class(db, class_id=class_id)
     if not success:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Class not found or could not be deleted")
     return # 204 No Content 響應不包含消息體
 
 # --- 會話相關 API 端點 ---
-@app.post("/sessions/", response_model=models.SessionInDB, status_code=status.HTTP_201_CREATED)
-def create_session(session: models.SessionCreate, db: Session = Depends(get_db)):
-    db_session = crud.create_session(db=db, session=session)
+@app.post("/sessions/", response_model=SessionInDB, status_code=status.HTTP_201_CREATED)
+def create_session(session: SessionCreate, db: Session = Depends(get_db)):
+    db_session = create_session(db=db, session=session)
     return db_session
 
-@app.get("/sessions/", response_model=List[models.SessionInDB])
+@app.get("/sessions/", response_model=List[SessionInDB])
 def read_sessions(
     class_id: Optional[str] = None,
     session_date: Optional[date] = None, # 這裡的類型仍是 date
     skip: int = 0, limit: int = 10000000, db: Session = Depends(get_db)):
     if class_id:
-        sessions = crud.get_sessions_by_class(db, class_id=class_id)
+        sessions = get_sessions_by_class(db, class_id=class_id)
     elif session_date:
-        sessions = crud.get_sessions_by_date(db, session_date=session_date)
+        sessions = get_sessions_by_date(db, session_date=session_date)
     else:
-        sessions = crud.get_all_sessions(db, skip=skip, limit=limit)
+        sessions = get_all_sessions(db, skip=skip, limit=limit)
     return sessions
 
-@app.get("/sessions/{session_id}", response_model=models.SessionInDB)
+@app.get("/sessions/{session_id}", response_model=SessionInDB)
 def read_session(session_id: str, db: Session = Depends(get_db)):
-    db_session = crud.get_session(db, session_id=session_id)
+    db_session = get_session(db, session_id=session_id)
     if db_session is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
     return db_session
 
-@app.put("/sessions/{session_id}", response_model=models.SessionInDB)
-def update_session(session_id: str, session: models.SessionUpdate, db: Session = Depends(get_db)):
-    db_session = crud.update_session(db, session_id=session_id, session=session)
+@app.put("/sessions/{session_id}", response_model=SessionInDB)
+def update_session(session_id: str, session: SessionUpdate, db: Session = Depends(get_db)):
+    db_session = update_session(db, session_id=session_id, session=session)
     if db_session is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
     return db_session
 
 @app.delete("/sessions/{session_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_session(session_id: str, db: Session = Depends(get_db)):
-    success = crud.delete_session(db, session_id=session_id)
+    success = delete_session(db, session_id=session_id)
     if not success:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found or could not be deleted")
     return # 204 No Content 響應不包含消息體
 
 # --- 交易相關 API 端點 ---
-@app.post("/transactions/", response_model=models.TransactionInDB, status_code=status.HTTP_201_CREATED)
-def create_transaction(transaction: models.TransactionCreate, db: Session = Depends(get_db)):
+@app.post("/transactions/", response_model=TransactionInDB, status_code=status.HTTP_201_CREATED)
+def create_transaction(transaction: TransactionCreate, db: Session = Depends(get_db)):
     # 這個端點將主要用於處理學生報名時生成交易
-    db_transaction = crud.create_transaction_for_enrollment(db=db, transaction=transaction)
+    db_transaction = create_transaction_for_enrollment(db=db, transaction=transaction)
     return db_transaction
 
-@app.get("/transactions/", response_model=List[models.TransactionInDB])
+@app.get("/transactions/", response_model=List[TransactionInDB])
 def read_transactions(
     student_id: Optional[str] = None,
     skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     if student_id:
-        transactions = crud.get_transactions_by_student(db, student_id=student_id)
+        transactions = get_transactions_by_student(db, student_id=student_id)
     else:
-        transactions = crud.get_all_transactions(db, skip=skip, limit=limit)
+        transactions = get_all_transactions(db, skip=skip, limit=limit)
     return transactions
 
-@app.get("/transactions/{transaction_id}", response_model=models.TransactionInDB)
+@app.get("/transactions/{transaction_id}", response_model=TransactionInDB)
 def read_transaction(transaction_id: str, db: Session = Depends(get_db)):
-    db_transaction = crud.get_transaction(db, transaction_id=transaction_id)
+    db_transaction = get_transaction(db, transaction_id=transaction_id)
     if db_transaction is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found")
     return db_transaction
 
-@app.put("/transactions/{transaction_id}", response_model=models.TransactionInDB)
-def update_transaction(transaction_id: str, transaction: models.TransactionUpdate, db: Session = Depends(get_db)):
-    db_transaction = crud.update_transaction(db, transaction_id=transaction_id, transaction=transaction)
+@app.put("/transactions/{transaction_id}", response_model=TransactionInDB)
+def update_transaction(transaction_id: str, transaction: TransactionUpdate, db: Session = Depends(get_db)):
+    db_transaction = update_transaction(db, transaction_id=transaction_id, transaction=transaction)
     if db_transaction is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found")
     return db_transaction
 
 @app.delete("/transactions/{transaction_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_transaction(transaction_id: str, db: Session = Depends(get_db)):
-    success = crud.delete_transaction(db, transaction_id=transaction_id)
+    success = delete_transaction(db, transaction_id=transaction_id)
     if not success:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found or could not be deleted")
     return # 204 No Content 響應不包含消息體
@@ -206,4 +218,4 @@ def health_check():
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Database connection failed: {e}")
     finally:
-        db.close() # 確保會話關閉   
+        db.close() # 確保會話關閉
