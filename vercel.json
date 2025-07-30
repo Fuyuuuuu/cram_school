@@ -34,6 +34,6 @@
     }
   ],
   "env": {
-    "REACT_APP_BACKEND_API_URL": "/api"
+    "REACT_APP_BACKEND_API_URL": "/api" 
   }
 }
