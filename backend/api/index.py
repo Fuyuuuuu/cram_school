@@ -1,6 +1,3 @@
-print("FastAPI application is starting up in Vercel environment...") # <-- Add this line at the very top
-
-
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -8,9 +5,6 @@ from sqlalchemy import text
 from typing import List, Optional
 from datetime import date, datetime
 
-# 修改這裡的導入方式，改為絕對導入
-# 假設 Vercel 的 pythonPath 配置會將 'backend' 目錄添加到 PYTHONPATH
-# 這樣可以直接導入 'database', 'models', 'crud'
 from database import SessionLocal, engine, get_db, Base
 from models import (
     StudentInDB, StudentCreate, StudentUpdate,
