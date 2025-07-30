@@ -36,7 +36,6 @@
     }
   ],
   "env": {
-    "DATABASE_URL": "@CRAM_SCHOOL_DB_URL",
     "REACT_APP_BACKEND_API_URL": "/api"
   }
 }
