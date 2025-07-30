@@ -1,13 +1,13 @@
 {
   "version": 2,
-  "installCommand": "echo 'Starting Monorepo Install: Python & Node.js' && pip install -r backend/requirements.txt --no-warn-script-location && npm install --prefix frontend && echo 'Monorepo Install Completed.'",
-  
+  "installCommand": "echo '--- Starting Monorepo Install (Python & Node.js) ---' && echo '--- Python Install Start ---' && pip install -r backend/requirements.txt --no-warn-script-location && echo '--- Python Install End ---' && echo '--- Verifying Python Packages ---' && python -c \"import sys; print(sys.path); import os; import pkg_resources; [print(dist.project_name, dist.version) for dist in pkg_resources.working_set]\" || true && echo '--- Python Package Verification Complete ---' && echo '--- Node.js Install Start ---' && npm install --prefix frontend && echo '--- Node.js Install End ---' && echo '--- Monorepo Install Completed ---'",
+ 
   "builds": [
     {
       "src": "backend/api/index.py",
       "use": "@vercel/python",
       "config": {
-        "runtime": "python3.11", 
+        "runtime": "python3.11",
         "maxLambdaSize": "15mb" 
       }
     },
@@ -39,6 +39,7 @@
     }
   ],
   "env": {
+    "DATABASE_URL": "@CRAM_SCHOOL_DB_URL",
     "REACT_APP_BACKEND_API_URL": "/api"
   }
 }
