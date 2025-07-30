@@ -1,5 +1,7 @@
 {
   "version": 2,
+  "installCommand": "echo 'Starting Monorepo Install: Python & Node.js' && pip install -r backend/requirements.txt --no-warn-script-location && npm install --prefix frontend && echo 'Monorepo Install Completed.'",
+  
   "builds": [
     {
       "src": "backend/api/index.py",
@@ -13,7 +15,8 @@
       "src": "frontend/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "outputDirectory": "build"
+        "outputDirectory": "build",
+        "buildCommand": "npm run build --prefix frontend" 
       }
     }
   ],
@@ -36,6 +39,7 @@
     }
   ],
   "env": {
+    "DATABASE_URL": "@CRAM_SCHOOL_DB_URL", 
     "REACT_APP_BACKEND_API_URL": "/api"
   }
 }
