@@ -3,12 +3,7 @@
   "builds": [
     {
       "src": "backend/api/index.py",
-      "use": "@vercel/python",
-      "config": {
-        "runtime": "python3.11",
-        "maxLambdaSize": "15mb",
-        "installCommand": "echo 'Installing Python dependencies specifically for backend...' && pip install -r backend/requirements.txt --no-warn-script-location && echo 'Python dependencies installed for backend.'"
-      }
+      "use": "@vercel/python"
     },
     {
       "src": "frontend/package.json",
