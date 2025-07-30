@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "cleanUrls": true,
   "builds": [
     {
       "src": "backend/api/index.py",
@@ -24,11 +23,11 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/backend/api/index.py" 
+      "dest": "/backend/api/index.py"
     },
     {
       "src": "/health",
-      "dest": "/backend/api/index.py" 
+      "dest": "/backend/api/index.py"
     },
     {
       "src": "/",
