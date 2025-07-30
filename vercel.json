@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "installCommand": "echo '--- Starting Monorepo Install (Python & Node.js) ---' && echo '--- Python Install Start ---' && pip install -r backend/requirements.txt --no-warn-script-location && echo '--- Python Install End ---' && echo '--- Verifying Python Packages ---' && python -c \"import sys; print(sys.path); import os; import pkg_resources; [print(dist.project_name, dist.version) for dist in pkg_resources.working_set]\" || true && echo '--- Python Package Verification Complete ---' && echo '--- Node.js Install Start ---' && npm install --prefix frontend && echo '--- Node.js Install End ---' && echo '--- Monorepo Install Completed ---'",
+  "installCommand": "pip install -r backend/requirements.txt --no-warn-script-location && npm install --prefix frontend",
  
   "builds": [
     {
@@ -26,7 +26,7 @@
       "dest": "/backend/api/index.py"
     },
     {
-      "src": "/health",
+    "src": "/health",
       "dest": "/backend/api/index.py"
     },
     {
