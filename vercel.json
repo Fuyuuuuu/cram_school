@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "installCommand": "pip install -r backend/requirements.txt --no-warn-script-location && npm install --prefix frontend",
+  "installCommand": "pip3 install -r backend/requirements.txt --no-warn-script-location && npm install --prefix frontend",
  
   "builds": [
     {
