@@ -4,6 +4,9 @@ from typing import List, Optional
 from datetime import date, datetime
 from pydantic import BaseModel, Field, ConfigDict
 from sqlalchemy import Column, Integer, String, Date, Float, ForeignKey, Boolean
+
+# 用於 Session 的日期型別（欄位名為 date，避免與型別 date 衝突）
+DateType = date
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import relationship
 
@@ -26,7 +29,7 @@ class AttendanceInDB(AttendanceBase):
 
 class SessionBase(BaseModel):
     class_id: str = Field(..., description="所屬課程的ID")
-    date: datetime = Field(..., description="會話日期 (YYYY-MM-DD)")
+    date: DateType = Field(..., description="會話日期 (YYYY-MM-DD)")  # 與 DB Date 一致，避免序列化 500
     actual_teacher: Optional[str] = Field(None, description="實際授課老師 (如果與主課老師不同)")
     attendance: List['AttendanceInDB'] = Field([], description="點名記錄列表")
     is_postponed: bool = Field(False, description="此會話是否被順延")

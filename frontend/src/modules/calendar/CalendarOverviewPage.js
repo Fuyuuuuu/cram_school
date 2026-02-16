@@ -54,19 +54,17 @@ const CalendarOverviewPage = ({
                     // getSessionsForDate 已經處理了從 session.date 提取日期部分進行比較
                     const sessionsOnThisDay = fullDate ? getSessionsForDate(fullDate) : [];
                     const isSelected = selectedDateOnCalendar && dateString === selectedDateOnCalendar.toISOString().split('T')[0];
-                    // **修改：直接檢查 isPostponed 屬性 (camelCase)**
                     const hasPostponedSession = sessionsOnThisDay.some(session => session.isPostponed === true);
-                    // 比較 today 時也只比較日期部分
-                    const isToday = fullDate && fullDate.setHours(0,0,0,0) === today.setHours(0,0,0,0);
-
+                    const isToday = fullDate && fullDate.getFullYear() === today.getFullYear() && fullDate.getMonth() === today.getMonth() && fullDate.getDate() === today.getDate();
 
                     return (
                         <div
                             key={index}
-                            className={`p-2 border border-gray-200 rounded-lg flex flex-col items-center justify-start min-h-[100px]
+                            className={`p-2 border rounded-lg flex flex-col items-center justify-start min-h-[100px]
                                 ${day ? 'bg-white hover:bg-gray-50 cursor-pointer' : 'bg-gray-50'}
-                                ${isSelected ? 'ring-2 ring-blue-500 border-blue-500' : ''}
-                                ${isToday ? 'bg-blue-50 border-blue-400' : ''}
+                                ${isToday && day ? 'ring-2 ring-amber-400 border-amber-400 shadow-md' : 'border-gray-200'}
+                                ${isSelected && !isToday ? 'ring-2 ring-blue-500 border-blue-500' : ''}
+                                ${isToday ? 'bg-amber-50' : ''}
                                 ${hasPostponedSession ? 'bg-orange-100 border-orange-500' : ''}
                             `}
                             onClick={() => {
@@ -76,9 +74,10 @@ const CalendarOverviewPage = ({
                                 }
                             }}
                         >
-                            <span className={`font-bold ${isSelected ? 'text-blue-700' : 'text-gray-800'}`}>
+                            <span className={`font-bold ${isToday ? 'text-amber-700' : isSelected ? 'text-blue-700' : 'text-gray-800'}`}>
                                 {day}
                             </span>
+                            {isToday && day && <span className="text-xs font-medium text-amber-600">今日</span>}
                             {sessionsOnThisDay.length > 0 && (
                                 <div className="mt-1 text-xs text-blue-600 font-medium">
                                     {sessionsOnThisDay.map(session => (

@@ -1,6 +1,19 @@
 // frontend/src/modules/students/StudentForm.js
 
-import React, { useMemo } from 'react'; // 移除 useEffect
+import React, { useState, useEffect } from 'react';
+
+const emptyStudent = { name: '', age: '', grade: '', school: '', phone: '', dob: '' };
+
+function normalizeDob(dob) {
+    if (!dob) return '';
+    if (typeof dob === 'string') return dob.slice(0, 10);
+    try {
+        const d = new Date(dob);
+        return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10);
+    } catch {
+        return '';
+    }
+}
 
 const StudentForm = ({
     newStudent, setNewStudent,
@@ -8,28 +21,56 @@ const StudentForm = ({
     handleAddStudent, handleUpdateStudent, setShowAddStudentForm, showMessage,
 }) => {
     const isEditing = !!editingStudent;
-    const formData = useMemo(() => {
-        // 移除 currentClass 字段
-        return isEditing ? editingStudent : newStudent || {};
-    }, [isEditing, editingStudent, newStudent]);
+    // 使用「本地 state」控制輸入，確保打字一定會顯示
+    const [formValues, setFormValues] = useState(() => {
+        if (isEditing && editingStudent) {
+            return {
+                name: editingStudent.name ?? '',
+                age: editingStudent.age ?? '',
+                grade: editingStudent.grade ?? '',
+                school: editingStudent.school ?? '',
+                phone: editingStudent.phone ?? '',
+                dob: normalizeDob(editingStudent.dob),
+            };
+        }
+        return { ...(newStudent || emptyStudent) };
+    });
+
+    // 僅在「切換新增/編輯」或「切換編輯對象」時從 props 同步到本地，打字時不覆寫
+    useEffect(() => {
+        if (isEditing && editingStudent) {
+            setFormValues({
+                name: editingStudent.name ?? '',
+                age: editingStudent.age ?? '',
+                grade: editingStudent.grade ?? '',
+                school: editingStudent.school ?? '',
+                phone: editingStudent.phone ?? '',
+                dob: normalizeDob(editingStudent.dob),
+            });
+        } else {
+            setFormValues({ ...(newStudent || emptyStudent) });
+        }
+    }, [isEditing, editingStudent?.id]); // 不依賴 newStudent，避免新增模式下打字觸發同步而清空
 
     const handleChange = (e) => {
         const { name, value } = e.target;
+        setFormValues(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
         if (isEditing) {
-            setEditingStudent(prev => ({ ...prev, [name]: value }));
+            handleUpdateStudent(e, { ...editingStudent, ...formValues });
         } else {
-            setNewStudent(prev => ({ ...prev, [name]: value }));
+            handleAddStudent(e, formValues);
         }
     };
 
-    const handleSubmit = isEditing ? handleUpdateStudent : handleAddStudent;
-
     const handleCancel = () => {
-        setEditingStudent(null); // 清除編輯狀態
-        // 重置 newStudent 狀態為預設值，確保所有屬性都存在，移除 currentClass
-        setNewStudent({ name: '', age: '', grade: '', school: '', phone: '', dob: '' });
-        setShowAddStudentForm(false); // 隱藏表單
-        showMessage(''); // 清除任何訊息
+        setEditingStudent(null);
+        setNewStudent(emptyStudent);
+        setShowAddStudentForm(false);
+        showMessage('');
     };
 
     return (
@@ -42,7 +83,7 @@ const StudentForm = ({
                         type="text"
                         id="studentName"
                         name="name"
-                        value={formData.name || ''}
+                        value={formValues.name}
                         onChange={handleChange}
                         className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                         placeholder="輸入學生姓名"
@@ -55,7 +96,7 @@ const StudentForm = ({
                         type="number"
                         id="studentAge"
                         name="age"
-                        value={formData.age || ''}
+                        value={formValues.age}
                         onChange={handleChange}
                         className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                         placeholder="輸入學生年齡"
@@ -68,7 +109,7 @@ const StudentForm = ({
                         type="text"
                         id="studentGrade"
                         name="grade"
-                        value={formData.grade || ''}
+                        value={formValues.grade}
                         onChange={handleChange}
                         className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                         placeholder="輸入學生年級"
@@ -81,7 +122,7 @@ const StudentForm = ({
                         type="text"
                         id="studentSchool"
                         name="school"
-                        value={formData.school || ''}
+                        value={formValues.school}
                         onChange={handleChange}
                         className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                         placeholder="輸入就讀學校"
@@ -94,7 +135,7 @@ const StudentForm = ({
                         type="text"
                         id="studentPhone"
                         name="phone"
-                        value={formData.phone || ''}
+                        value={formValues.phone}
                         onChange={handleChange}
                         className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                         placeholder="輸入聯絡電話"
@@ -107,27 +148,13 @@ const StudentForm = ({
                         type="date"
                         id="studentDob"
                         name="dob"
-                        value={formData.dob || ''}
+                        value={formValues.dob}
                         onChange={handleChange}
                         className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                         placeholder="輸入生日"
                         required
                     />
                 </div>
-                {/* 移除目前班級的輸入框 */}
-                {/* <div>
-                    <label htmlFor="studentCurrentClass" className="block text-sm font-medium text-gray-700 mb-1">目前班級</label>
-                    <input
-                        type="text"
-                        id="studentCurrentClass"
-                        name="currentClass"
-                        value={formData.currentClass || ''}
-                        onChange={handleChange}
-                        className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                        placeholder="輸入目前班級"
-                        required
-                    />
-                </div> */}
                 <div className="md:col-span-3 flex justify-center space-x-4">
                     <button
                         type="submit"

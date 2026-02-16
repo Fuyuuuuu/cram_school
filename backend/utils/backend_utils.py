@@ -1,53 +1,59 @@
 from datetime import date, datetime, timedelta
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Union
+
+def _to_date(v: Any) -> date:
+    """將 date/datetime/字串 轉成 date，避免會話生成時型別錯誤。"""
+    if v is None:
+        raise ValueError("date is None")
+    if isinstance(v, date) and not isinstance(v, datetime):
+        return v
+    if isinstance(v, datetime):
+        return v.date()
+    if isinstance(v, str):
+        return datetime.strptime(v[:10], "%Y-%m-%d").date()
+    raise TypeError(f"cannot convert to date: {type(v)}")
+
 
 # 輔助函數：根據開始日期、上課星期和總堂數生成課程會話
 def generate_sessions_for_class(
     class_data: Any,
     class_id: str,
     target_sessions: int,
-    days_of_week: List[int], # 前端傳來的 days_of_week (0=日, 1=一...6=六)
-    enrolled_students: List[str]
+    days_of_week: List[int],  # 前端/API: 0=日, 1=一, ..., 6=六
+    enrolled_students: List[str],
 ) -> List[Dict[str, Any]]:
-    """生成課程的所有會話"""
-    sessions = []
-    current_date = class_data.start_date.date() if isinstance(class_data.start_date, datetime) else class_data.start_date
-    end_date = class_data.end_date.date() if isinstance(class_data.end_date, datetime) else class_data.end_date
+    """依開始日期與上課星期，生成恰好 target_sessions 筆會話（不依賴 end_date 是否正確）。"""
+    sessions: List[Dict[str, Any]] = []
+    current_date = _to_date(class_data.start_date)
+    # 正規化星期為 set of int，避免 DB/JSON 傳回字串或順序問題
+    allowed_days = {int(d) for d in days_of_week if d is not None}
+    if not allowed_days:
+        return sessions
+    # 最多往後搜尋 2 年，避免無限迴圈
+    max_date = current_date + timedelta(days=730)
     session_count = 0
+    main_teacher = getattr(class_data, "main_teacher", None) or ""
 
-    while current_date <= end_date and session_count < target_sessions:
-        # 修正：將前端的星期索引 (0=日, 1=一) 轉換為 Python 的 weekday() 索引 (0=一, 6=日)
-        python_weekday = current_date.weekday() # Python: 0=Mon, ..., 6=Sun
-        
-        # 將 Python 的 weekday 轉換為前端的星期索引
-        # Python_weekday | Frontend_index
-        # 0 (Mon)      | 1
-        # 1 (Tue)      | 2
-        # 2 (Wed)      | 3
-        # 3 (Thu)      | 4
-        # 4 (Fri)      | 5
-        # 5 (Sat)      | 6
-        # 6 (Sun)      | 0
-        
-        # 轉換邏輯: 如果 python_weekday 是 6 (週日), 則前端是 0. 否則為 python_weekday + 1
-        frontend_day_index = (python_weekday + 1) % 7 
+    while session_count < target_sessions and current_date <= max_date:
+        # Python weekday(): 0=周一, 6=周日 → 對應前端 0=日, 1=一, ..., 6=六
+        python_weekday = current_date.weekday()  # 0=Mon .. 6=Sun
+        frontend_day_index = (python_weekday + 1) % 7  # Mon->1, ..., Sun->0
 
-        if frontend_day_index in days_of_week: # 使用轉換後的索引進行比較
+        if frontend_day_index in allowed_days:
             attendance = [
-                {"student_id": student_id, "status": "未到"}
-                for student_id in enrolled_students
+                {"student_id": sid, "status": "未到"}
+                for sid in (enrolled_students or [])
             ]
-            
             sessions.append({
                 "class_id": class_id,
-                "date": current_date, # 這裡保持 date 對象
-                "actual_teacher": class_data.main_teacher,
-                "attendance": attendance ,
-                "is_postponed": False 
+                "date": current_date,
+                "actual_teacher": main_teacher,
+                "attendance": attendance,
+                "is_postponed": False,
             })
             session_count += 1
         current_date += timedelta(days=1)
-    
+
     return sessions
 
 # generate_transactions_for_class_template 保持不變，因為它不涉及日期邏輯錯誤

@@ -26,15 +26,16 @@ const ClassCalendarModal = ({
         return `${year}-${month}-${day}`;
     }, []);
 
-    // 獲取特定日期是否有會話
+    // 獲取特定日期是否有會話（s.date 可能是 Date 或字串，皆要正確比對）
     const getSessionForDate = useCallback((dateString) => {
-        const currentSessions = sessions || []; // 防禦性檢查
+        const currentSessions = sessions || [];
         const foundSession = currentSessions.find(s => {
-            if (!s || typeof s.date !== 'string' || !s.classId) { // s.classId 是 camelCase
-                return false;
-            }
-            const sessionDatePart = formatDateToLocalISO(new Date(s.date));
-            const isClassIdMatch = String(s.classId) === String(cls.id); // s.classId 是 camelCase
+            if (!s || !s.classId) return false;
+            const sessionDatePart = s.date instanceof Date
+                ? formatDateToLocalISO(s.date)
+                : formatDateToLocalISO(new Date(s.date));
+            if (!sessionDatePart) return false;
+            const isClassIdMatch = String(s.classId) === String(cls?.id);
             const isDateMatch = sessionDatePart === dateString;
             return isClassIdMatch && isDateMatch;
         });
@@ -150,6 +151,7 @@ const ClassCalendarModal = ({
 
                         const sessionExists = dateString ? getSessionForDate(dateString) : null;
                         const isPastDate = fullDate && fullDate.setHours(0, 0, 0, 0) < today.setHours(0, 0, 0, 0);
+                        const isToday = fullDate && fullDate.getFullYear() === today.getFullYear() && fullDate.getMonth() === today.getMonth() && fullDate.getDate() === today.getDate();
 
                         // **修改：直接使用 sessionExists?.isPostponed**
                         const isPostponedSession = sessionExists?.isPostponed === true; // isPostponed 是 camelCase
@@ -161,8 +163,9 @@ const ClassCalendarModal = ({
                         return (
                             <div
                                 key={index}
-                                className={`p-2 border border-gray-200 rounded-lg flex flex-col items-center justify-start min-h-[100px]
+                                className={`p-2 border rounded-lg flex flex-col items-center justify-start min-h-[100px]
                                     ${day ? 'bg-white' : 'bg-gray-50'}
+                                    ${isToday && day ? 'ring-2 ring-amber-400 border-amber-400 shadow-md' : 'border-gray-200'}
                                     ${isPastDate && day ? 'opacity-50 cursor-not-allowed' : ''}
                                     ${sessionExists && !isPostponedSession ? 'bg-green-100 border-green-500 cursor-pointer hover:bg-green-200' : ''}
                                     ${isPostponedSession ? 'bg-orange-100 border-orange-500 cursor-not-allowed' : ''}
@@ -180,7 +183,8 @@ const ClassCalendarModal = ({
                                     }
                                 }}
                             >
-                                <span className="font-bold text-gray-800">{day}</span>
+                                <span className={`font-bold ${isToday ? 'text-amber-700' : 'text-gray-800'}`}>{day}</span>
+                                {isToday && day && <span className="text-xs font-medium text-amber-600">今日</span>}
                                 {sessionExists && !isPostponedSession && <span className="text-xs text-green-600">已排課</span>}
                                 {isPostponedSession && <span className="text-xs text-orange-600">已順延</span>}
                                 {!sessionExists && day && !isPastDate && !isPostponedSession && isClassDay && <span className="text-xs text-blue-600">可排課</span>}

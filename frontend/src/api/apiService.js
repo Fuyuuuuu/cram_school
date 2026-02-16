@@ -1,9 +1,11 @@
-// 根據環境設定 API 基礎 URL
-// 在本地開發時，FastAPI 通常運行在 8000 端口
-// 在生產環境 (Vercel) 時，它將通過路由規則映射到 /api
-const API_BASE_URL = process.env.NODE_ENV === 'production'
-    ? process.env.REACT_APP_BACKEND_API_URL || '/api' // Vercel 部署後的後端 URL 或默認為 /api
-    : 'http://localhost:8000'; // 本地開發的後端 URL
+// API 基礎 URL：本地開網頁時一律連 http://localhost:8000，部署後用 /api
+function getApiBaseUrl() {
+    if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+        return process.env.REACT_APP_BACKEND_API_URL || 'http://localhost:8001';
+    }
+    return process.env.REACT_APP_BACKEND_API_URL || '/api';
+}
+const API_BASE_URL = getApiBaseUrl();
 
 /**
  * 通用的 API 請求函數
@@ -69,7 +71,15 @@ const api = async (endpoint, method = 'GET', data = null) => {
 
     } catch (error) {
         console.error(`API call to ${url} failed:`, error);
-        throw error; // 重新拋出錯誤，讓調用者處理
+        if (error.message === 'Failed to fetch' || error.name === 'TypeError') {
+            const isProd = process.env.NODE_ENV === 'production';
+            throw new Error(
+                isProd
+                    ? '無法連線至後端，請確認網站已正確部署且後端 API 可存取。'
+                    : '無法連線至後端，請確認後端已啟動（例如：在專案根目錄執行 uvicorn，port 8000）。'
+            );
+        }
+        throw error;
     }
 };
 

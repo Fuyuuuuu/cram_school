@@ -78,9 +78,22 @@ const useTuitionData = () => {
     const [showAdjustPaymentDateModal, setShowAdjustPaymentDateModal] = useState(false);
     const [selectedClassForPaymentAdjustment, setSelectedClassForPaymentAdjustment] = useState(null);
 
-    // 輔助函數：將 Date 對象轉換為 'YYYY-MM-DD' 格式的本地日期字串
+    // 輔助函數：將 Date 或 'YYYY-MM-DD' 字串轉換為 'YYYY-MM-DD' 格式（表單 type="date" 送出的為字串）
     const formatDateToLocalISO = useCallback((dateObj) => {
-        if (!dateObj) return null;
+        if (dateObj == null) return null;
+        if (typeof dateObj === 'string') {
+            const trimmed = dateObj.trim();
+            if (/^\d{4}-\d{2}-\d{2}/.test(trimmed)) return trimmed.slice(0, 10);
+            const d = new Date(trimmed);
+            if (!isNaN(d.getTime())) {
+                const year = d.getFullYear();
+                const month = (d.getMonth() + 1).toString().padStart(2, '0');
+                const day = d.getDate().toString().padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+            return null;
+        }
+        if (typeof dateObj.getFullYear !== 'function') return null;
         const year = dateObj.getFullYear();
         const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
         const day = dateObj.getDate().toString().padStart(2, '0');
@@ -204,21 +217,22 @@ const useTuitionData = () => {
         }
     }, [editingStudent, setNewStudent, setEditingStudent]);
 
-    const handleAddStudent = useCallback(async (e) => {
+    const handleAddStudent = useCallback(async (e, formDataFromForm) => {
         e.preventDefault();
-        if (!newStudent.name || !newStudent.age || !newStudent.grade || !newStudent.school || !newStudent.phone || !newStudent.dob) {
+        const data = formDataFromForm != null ? formDataFromForm : newStudent;
+        if (!data.name || !data.age || !data.grade || !data.school || !data.phone || !data.dob) {
             showMessage('請填寫所有學生資訊 (姓名、年齡、年級、學校、電話、生日)。', 'error');
             return;
         }
         setLoading(true);
         try {
             const studentDataToSend = {
-                name: newStudent.name,
-                age: parseInt(newStudent.age),
-                grade: newStudent.grade,
-                school: newStudent.school,
-                phone: newStudent.phone,
-                dob: formatDateToLocalISO(newStudent.dob), // 確保傳遞 YYYY-MM-DD 字符串
+                name: data.name,
+                age: parseInt(data.age, 10),
+                grade: data.grade,
+                school: data.school,
+                phone: data.phone,
+                dob: formatDateToLocalISO(data.dob),
             };
             await studentApi.create(studentDataToSend);
             await fetchData();
@@ -227,7 +241,8 @@ const useTuitionData = () => {
             showMessage('學生已成功添加！', 'success');
         } catch (err) {
             console.error("Error adding student:", err);
-            showMessage(`添加學生失敗: ${err.message}`, 'error');
+            const msg = err && err.message ? err.message : '未知錯誤';
+            showMessage(`添加學生失敗: ${msg}`, 'error');
         } finally {
             setLoading(false);
         }
@@ -246,23 +261,24 @@ const useTuitionData = () => {
         setShowAddStudentForm(true);
     }, []);
 
-    const handleUpdateStudent = useCallback(async (e) => {
+    const handleUpdateStudent = useCallback(async (e, formDataFromForm) => {
         e.preventDefault();
-        if (!editingStudent || !editingStudent.name || !editingStudent.age || !editingStudent.grade || !editingStudent.school || !editingStudent.phone || !editingStudent.dob) {
+        const data = formDataFromForm != null ? formDataFromForm : editingStudent;
+        if (!data || !data.name || !data.age || !data.grade || !data.school || !data.phone || !data.dob) {
             showMessage('請填寫所有學生資訊 (姓名、年齡、年級、學校、電話、生日)。', 'error');
             return;
         }
         setLoading(true);
         try {
             const studentDataToSend = {
-                name: editingStudent.name,
-                age: parseInt(editingStudent.age),
-                grade: editingStudent.grade,
-                school: editingStudent.school,
-                phone: editingStudent.phone,
-                dob: formatDateToLocalISO(editingStudent.dob), // 確保傳遞 YYYY-MM-DD 字符串
+                name: data.name,
+                age: parseInt(data.age, 10),
+                grade: data.grade,
+                school: data.school,
+                phone: data.phone,
+                dob: formatDateToLocalISO(data.dob),
             };
-            await studentApi.update(editingStudent.id, studentDataToSend);
+            await studentApi.update(data.id, studentDataToSend);
             await fetchData();
             setEditingStudent(null);
             setShowAddStudentForm(false);
@@ -1002,8 +1018,10 @@ const useTuitionData = () => {
             showMessage('該堂課已標記為順延，無需重複操作。', 'info');
             return;
         }
-        
-        const allAttended = (originalSession.attendance || []).every(att => att.status === '已到');
+
+        const attendanceList = originalSession.attendance || [];
+        const hasRollCall = attendanceList.length > 0;
+        const allAttended = hasRollCall && attendanceList.every(att => att.status === '已到');
         if (allAttended) {
             showMessage('該堂課已完成點名且所有學生已到，無法順延。', 'error');
             return;
