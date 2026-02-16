@@ -13,7 +13,7 @@
       "src": "frontend/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "outputDirectory": "build",
+        "outputDirectory": "frontend/build",
         "buildCommand": "cd frontend && npm ci && npm run build"
       }
     }
