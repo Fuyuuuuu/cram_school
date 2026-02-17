@@ -27,23 +27,26 @@ const StudentPaymentModal = ({
     today.setHours(0, 0, 0, 0); // 正規化今天的日期，僅比較日期部分
 
     return (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-50 p-4">
-            <div className="bg-white p-8 rounded-lg shadow-xl max-w-4xl w-full relative">
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 z-[100] overflow-y-auto">
+          <div className="flex min-h-screen items-center justify-center py-8 px-4">
+            <div className="bg-white p-6 sm:p-8 rounded-xl shadow-xl w-[min(92vw,64rem)] max-h-[90vh] overflow-y-auto relative">
                 <button
                     onClick={onClose}
-                    className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-2xl font-bold"
+                    type="button"
+                    style={{ position: 'absolute', top: '1rem', right: '1rem', left: 'auto' }}
+                    className="text-gray-500 hover:text-gray-800 text-2xl font-bold"
                 >
                     &times;
                 </button>
-                <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">學生繳費管理 - {student.name}</h3>
-                <div className="max-h-96 overflow-y-auto">
+                <h3 className="text-2xl font-bold text-gray-800 mb-5 text-center pr-10">學生繳費管理 - {student.name}</h3>
+                <div className="max-h-[50vh] sm:max-h-96 overflow-y-auto">
                     {Object.keys(transactionsByClass).length === 0 ? (
                         <p className="text-center text-gray-600">該學生目前沒有繳費記錄。</p>
                     ) : (
                         Object.entries(transactionsByClass).map(([className, classTransactions]) => (
-                            <div key={className} className="mb-8 p-4 border border-blue-200 rounded-lg bg-blue-50">
-                                <h4 className="text-xl font-semibold text-blue-800 mb-4">{className}</h4>
-                                <div className="flex justify-end mb-4">
+                            <div key={className} className="mb-5 p-3 border border-blue-200 rounded-lg bg-blue-50">
+                                <h4 className="text-lg font-semibold text-blue-800 mb-2">{className}</h4>
+                                <div className="flex justify-end mb-2">
                                     <button
                                         // 使用 classTransactions[0].class_id (snake_case)
                                         onClick={() => handlePrintCombined(student, classTransactions[0].class_id)}
@@ -125,7 +128,7 @@ const StudentPaymentModal = ({
                         ))
                     )}
                 </div>
-                <div className="flex justify-center mt-6">
+                <div className="flex justify-center mt-4">
                     <button
                         onClick={onClose}
                         className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-all"
@@ -134,6 +137,7 @@ const StudentPaymentModal = ({
                     </button>
                 </div>
             </div>
+          </div>
         </div>
     );
 };

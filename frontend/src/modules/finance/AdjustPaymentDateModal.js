@@ -42,22 +42,25 @@ const AdjustPaymentDateModal = ({
     };
 
     return (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-50 p-4">
-            <div className="bg-white p-8 rounded-lg shadow-xl max-w-lg w-full relative">
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 z-[100] overflow-y-auto">
+          <div className="flex min-h-screen items-center justify-center py-8 px-4">
+            <div className="bg-white p-6 sm:p-8 rounded-xl shadow-xl w-[min(92vw,42rem)] max-h-[90vh] overflow-y-auto relative">
                 <button
                     onClick={onClose}
-                    className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-2xl font-bold"
+                    type="button"
+                    style={{ position: 'absolute', top: '1rem', right: '1rem', left: 'auto' }}
+                    className="text-gray-500 hover:text-gray-800 text-2xl font-bold"
                 >
                     &times;
                 </button>
-                <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">調整繳費日期 - {cls.name}</h3>
+                <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center pr-10">調整繳費日期 - {cls.name}</h3>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-5">
                     <div>
-                        <label htmlFor="transactionSelect" className="block text-sm font-medium text-gray-700 mb-1">選擇繳費項目</label>
+                        <label htmlFor="transactionSelect" className="block text-base font-medium text-gray-700 mb-2">選擇繳費項目</label>
                         <select
                             id="transactionSelect"
-                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                            className="mt-1 block w-full px-4 py-3 text-base border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
                             value={selectedTransactionId}
                             onChange={(e) => setSelectedTransactionId(e.target.value)}
                             required
@@ -70,39 +73,40 @@ const AdjustPaymentDateModal = ({
                             ))}
                         </select>
                         {relevantTransactions.length === 0 && (
-                            <p className="text-sm text-gray-500 mt-2">該課程目前沒有未繳費項目可供調整。</p>
+                            <p className="text-base text-gray-500 mt-3">該課程目前沒有未繳費項目可供調整。</p>
                         )}
                     </div>
 
                     <div>
-                        <label htmlFor="newDueDate" className="block text-sm font-medium text-gray-700 mb-1">新的繳費日期</label>
+                        <label htmlFor="newDueDate" className="block text-base font-medium text-gray-700 mb-2">新的繳費日期</label>
                         <input
                             type="date"
                             id="newDueDate"
-                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                            className="mt-1 block w-full px-4 py-3 text-base border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
                             value={newDueDate}
                             onChange={(e) => setNewDueDate(e.target.value)}
                             required
                         />
                     </div>
 
-                    <div className="flex justify-center space-x-4 mt-6">
+                    <div className="flex justify-center gap-4 mt-6">
                         <button
                             type="submit"
-                            className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors"
+                            className="px-8 py-3 text-base bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors"
                         >
                             確認調整
                         </button>
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-6 py-2 bg-gray-500 text-white font-semibold rounded-lg shadow-md hover:bg-gray-600 transition-colors"
+                            className="px-8 py-3 text-base bg-gray-500 text-white font-semibold rounded-lg shadow-md hover:bg-gray-600 transition-colors"
                         >
                             取消
                         </button>
                     </div>
                 </form>
             </div>
+          </div>
         </div>
     );
 };

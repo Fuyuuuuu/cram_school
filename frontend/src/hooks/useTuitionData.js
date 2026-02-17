@@ -942,6 +942,7 @@ const useTuitionData = () => {
         });
 
         setStudentSummaryData({
+            student,
             studentName: student.name,
             courses: summaryCourses
         });

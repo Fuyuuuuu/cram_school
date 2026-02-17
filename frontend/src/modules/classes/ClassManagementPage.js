@@ -1,11 +1,10 @@
 // frontend/src/modules/classes/ClassManagementPage.js
 
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import ClassForm from './ClassForm';
 import MessageDisplay from '../../components/MessageDisplay';
 import EnrolledStudentsModal from './EnrolledStudentsModal';
 import ClassCalendarModal from './ClassCalendarModal';
-import AdjustPaymentDateModal from '../finance/AdjustPaymentDateModal'; // 導入新的繳費日期調整 Modal
 
 const ClassManagementPage = ({
     showClassCalendarModal,
@@ -33,10 +32,30 @@ const ClassManagementPage = ({
     handleAdjustPaymentDate, // 從 useTuitionData 傳入的函數
     transactions, // 從 useTuitionData 傳入的 transactions 數據
 }) => {
+    const [currentClassesPage, setCurrentClassesPage] = useState(1);
+    const rowsPerPage = 15;
+
     // 在組件內部，渲染之前，再次檢查 handleEditClass 的值
     console.log("ClassManagementPage component rendering. Checking handleEditClass prop:");
     console.log("Type of handleEditClass:", typeof handleEditClass);
     console.log("Value of handleEditClass:", handleEditClass);
+
+    const classList = classes || [];
+    const shouldScrollClasses = classList.length > 15;
+    const shouldPaginateClasses = classList.length > 30;
+    const totalClassesPages = Math.max(1, Math.ceil(classList.length / rowsPerPage));
+
+    useEffect(() => {
+        if (currentClassesPage > totalClassesPages) {
+            setCurrentClassesPage(totalClassesPages);
+        }
+    }, [currentClassesPage, totalClassesPages]);
+
+    const visibleClasses = useMemo(() => {
+        if (!shouldPaginateClasses) return classList;
+        const start = (currentClassesPage - 1) * rowsPerPage;
+        return classList.slice(start, start + rowsPerPage);
+    }, [classList, shouldPaginateClasses, currentClassesPage]);
 
     return (
         <div className="bg-white p-8 rounded-xl shadow-2xl transition-all duration-500 ease-in-out transform hover:scale-105">
@@ -80,7 +99,7 @@ const ClassManagementPage = ({
             {classes.length === 0 ? (
                 <p className="text-center text-gray-600">目前沒有課程。</p>
             ) : (
-                <div className="overflow-x-auto mb-8">
+                <div className={`${shouldScrollClasses ? 'max-h-[65vh] overflow-y-auto pr-1' : ''} overflow-x-auto mb-8`}>
                     <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-md">
                         <thead className="bg-gray-50">
                             <tr>
@@ -94,7 +113,7 @@ const ClassManagementPage = ({
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
-                            {(classes || []).map((cls) => (
+                            {visibleClasses.map((cls) => (
                                 <tr key={cls.id} className="hover:bg-gray-50 transition-colors duration-200">
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{cls.name}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{cls.mainTeacher}</td>
@@ -148,6 +167,35 @@ const ClassManagementPage = ({
                     </table>
                 </div>
             )}
+            {shouldPaginateClasses && (
+                <div className="mb-8 -mt-4 flex justify-center items-center gap-3">
+                    <button
+                        onClick={() => setCurrentClassesPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentClassesPage === 1}
+                        className={`px-3 py-1.5 rounded-md text-sm font-semibold transition-colors ${
+                            currentClassesPage === 1
+                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                    >
+                        上一頁
+                    </button>
+                    <span className="text-sm font-semibold text-gray-700">
+                        第 {currentClassesPage} 頁 / 共 {totalClassesPages} 頁
+                    </span>
+                    <button
+                        onClick={() => setCurrentClassesPage(prev => Math.min(totalClassesPages, prev + 1))}
+                        disabled={currentClassesPage === totalClassesPages}
+                        className={`px-3 py-1.5 rounded-md text-sm font-semibold transition-colors ${
+                            currentClassesPage === totalClassesPages
+                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                    >
+                        下一頁
+                    </button>
+                </div>
+            )}
 
             <EnrolledStudentsModal
                 show={showEnrolledStudentsModal}
@@ -173,18 +221,7 @@ const ClassManagementPage = ({
                 handleManualToggleSession={handleManualToggleSession}
             />
             
-            {/* --- 新增：繳費日期調整 Modal --- */}
-            <AdjustPaymentDateModal
-                show={showAdjustPaymentDateModal}
-                onClose={() => setShowAdjustPaymentDateModal(false)}
-                cls={selectedClassForPaymentAdjustment}
-                transactions={transactions}
-                students={students}
-                showMessage={showMessage}
-                handleAdjustPaymentDate={handleAdjustPaymentDate}
-                getStudentNameById={getStudentNameById}
-            />
-            {/* --- 結束新增 --- */}
+            {/* 繳費日期調整 Modal 已改由 App.js 統一渲染，避免重疊 */}
 
         </div>
     );

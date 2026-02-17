@@ -7,16 +7,19 @@ const ReceiptModal = ({ show, onClose, data }) => {
     if (!show || !data) return null;
 
     return (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-50 p-4">
-            <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full relative">
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 z-[100] overflow-y-auto">
+          <div className="flex min-h-screen items-center justify-center py-8 px-4">
+            <div className="bg-white p-6 sm:p-8 rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto relative">
                 <button
                     onClick={onClose}
-                    className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-2xl font-bold"
+                    type="button"
+                    style={{ position: 'absolute', top: '1rem', right: '1rem', left: 'auto' }}
+                    className="text-gray-500 hover:text-gray-800 text-2xl font-bold"
                 >
                     &times;
                 </button>
-                <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">繳費收據</h3>
-                <div className="border-t border-b border-gray-300 py-4 mb-4">
+                <h3 className="text-2xl font-bold text-gray-800 mb-5 text-center pr-10">繳費收據</h3>
+                <div className="border-t border-b border-gray-300 py-3 mb-3">
                     <p className="mb-2"><span className="font-semibold">補習班名稱:</span> {data.centerName}</p>
                     <p className="mb-2"><span className="font-semibold">收據編號:</span> {data.id}</p>
                     <p className="mb-2"><span className="font-semibold">學生姓名:</span> {data.studentName}</p>
@@ -37,6 +40,7 @@ const ReceiptModal = ({ show, onClose, data }) => {
                     </button>
                 </div>
             </div>
+          </div>
         </div>
     );
 };

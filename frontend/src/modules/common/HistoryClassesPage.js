@@ -1,12 +1,15 @@
 // frontend/src/modules/common/HistoryClassesPage.js
 
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import MessageDisplay from '../../components/MessageDisplay'; // 導入訊息顯示組件
 
 const HistoryClassesPage = ({
     sessions, getStudentNameById, getClassNameById, getClassTeacherById, getAttendanceSummaryForSession,
     messageText, messageType // 從 Hook 傳入訊息相關 props
 }) => {
+    const [currentPage, setCurrentPage] = useState(1);
+    const rowsPerPage = 15;
+
     const today = new Date();
     today.setHours(0, 0, 0, 0); // 正規化今天的日期以進行比較
 
@@ -15,15 +18,31 @@ const HistoryClassesPage = ({
         .filter(session => new Date(session.date) < today) // 直接用 new Date(session.date) 解析
         .sort((a, b) => new Date(b.date) - new Date(a.date)); // 直接用 new Date() 比較
 
+    const shouldShowScroll = pastSessions.length > 15;
+    const shouldPaginate = pastSessions.length > 30;
+    const totalPages = Math.max(1, Math.ceil(pastSessions.length / rowsPerPage));
+
+    useEffect(() => {
+        if (currentPage > totalPages) {
+            setCurrentPage(totalPages);
+        }
+    }, [currentPage, totalPages]);
+
+    const visibleSessions = useMemo(() => {
+        if (!shouldPaginate) return pastSessions;
+        const start = (currentPage - 1) * rowsPerPage;
+        return pastSessions.slice(start, start + rowsPerPage);
+    }, [pastSessions, shouldPaginate, currentPage]);
+
     return (
-        <div className="bg-white p-8 rounded-xl shadow-2xl transition-all duration-500 ease-in-out transform hover:scale-105">
+        <div className="bg-white p-8 rounded-xl shadow-2xl">
             <h2 className="text-3xl font-extrabold text-gray-800 mb-6 text-center">歷史課程</h2>
             <MessageDisplay msg={messageText} type={messageType} />
 
             {pastSessions.length === 0 ? (
                 <p className="text-center text-gray-600">目前沒有歷史課程記錄。</p>
             ) : (
-                <div className="overflow-x-auto">
+                <div className={`${shouldShowScroll ? 'max-h-[65vh] overflow-y-auto pr-1' : ''} overflow-x-auto`}>
                     <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-md">
                         <thead className="bg-gray-50">
                             <tr>
@@ -35,8 +54,8 @@ const HistoryClassesPage = ({
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
-                            {pastSessions.map(session => (
-                                <tr key={session.id} className="hover:bg-gray-50 transition-colors duration-200">
+                            {visibleSessions.map(session => (
+                                <tr key={session.id}>
                                     {/* 格式化 session.date 為本地日期字符串 */}
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{new Date(session.date).toLocaleDateString('zh-TW')}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -75,6 +94,35 @@ const HistoryClassesPage = ({
                             ))}
                         </tbody>
                     </table>
+                </div>
+            )}
+            {shouldPaginate && (
+                <div className="mt-4 flex justify-center items-center gap-3">
+                    <button
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                        className={`px-3 py-1.5 rounded-md text-sm font-semibold transition-colors ${
+                            currentPage === 1
+                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                    >
+                        上一頁
+                    </button>
+                    <span className="text-sm font-semibold text-gray-700">
+                        第 {currentPage} 頁 / 共 {totalPages} 頁
+                    </span>
+                    <button
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        disabled={currentPage === totalPages}
+                        className={`px-3 py-1.5 rounded-md text-sm font-semibold transition-colors ${
+                            currentPage === totalPages
+                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                    >
+                        下一頁
+                    </button>
                 </div>
             )}
         </div>

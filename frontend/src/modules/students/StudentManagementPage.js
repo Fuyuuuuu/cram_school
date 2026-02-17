@@ -1,6 +1,6 @@
 // frontend/src/modules/students/StudentManagementPage.js
 
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import StudentForm from './StudentForm'; // 導入學生表單組件
 import MessageDisplay from '../../components/MessageDisplay'; // 導入訊息顯示組件
 
@@ -26,8 +26,6 @@ const StudentManagementPage = ({
     studentsToEnroll,
     setStudentsToEnroll,
     classes, // 確保 classes 傳入，用於學生報名課程功能
-    handlePrintAllPaymentNotices,
-    handlePrintAllReceipts,
     showMessage,
     getStudentNameById,
     messageText,
@@ -35,10 +33,29 @@ const StudentManagementPage = ({
     handleStudentInputChange,
     getStudentEnrolledClassNames, // <-- 新增接收此輔助函數
 }) => {
+    const [currentStudentsPage, setCurrentStudentsPage] = useState(1);
+    const rowsPerPage = 15;
+
     // 在組件內部，渲染之前，再次檢查 handleEditStudent 的值
     console.log("StudentManagementPage component rendering. Checking handleEditStudent prop:");
     console.log("Type of handleEditStudent:", typeof handleEditStudent);
     console.log("Value of handleEditStudent:", handleEditStudent);
+
+    const shouldScrollStudents = students.length > 15;
+    const shouldPaginateStudents = students.length > 30;
+    const totalStudentsPages = Math.max(1, Math.ceil(students.length / rowsPerPage));
+
+    useEffect(() => {
+        if (currentStudentsPage > totalStudentsPages) {
+            setCurrentStudentsPage(totalStudentsPages);
+        }
+    }, [currentStudentsPage, totalStudentsPages]);
+
+    const visibleStudents = useMemo(() => {
+        if (!shouldPaginateStudents) return students;
+        const start = (currentStudentsPage - 1) * rowsPerPage;
+        return students.slice(start, start + rowsPerPage);
+    }, [students, shouldPaginateStudents, currentStudentsPage]);
 
     return (
         <div className="bg-white p-8 rounded-xl shadow-2xl transition-all duration-500 ease-in-out transform hover:scale-105">
@@ -57,22 +74,6 @@ const StudentManagementPage = ({
                     className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 >
                     {showAddStudentForm ? '隱藏學生表單' : '添加學生'}
-                </button>
-            </div>
-
-            {/* 新增的列印按鈕 */}
-            <div className="flex justify-center space-x-4 mb-8">
-                <button
-                    onClick={handlePrintAllPaymentNotices}
-                    className="px-6 py-2 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700 transition-all"
-                >
-                    列印所有繳費通知
-                </button>
-                <button
-                    onClick={handlePrintAllReceipts}
-                    className="px-6 py-2 bg-teal-600 text-white font-semibold rounded-lg shadow-md hover:bg-teal-700 transition-all"
-                >
-                    列印所有收據
                 </button>
             </div>
 
@@ -95,7 +96,7 @@ const StudentManagementPage = ({
             {students.length === 0 ? (
                 <p className="text-center text-gray-600">目前沒有學生。</p>
             ) : (
-                <div className="overflow-x-auto">
+                <div className={`${shouldScrollStudents ? 'max-h-[65vh] overflow-y-auto pr-1' : ''} overflow-x-auto`}>
                     <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-md">
                         <thead className="bg-gray-50">
                             <tr>
@@ -110,7 +111,7 @@ const StudentManagementPage = ({
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
-                            {students.map((student) => (
+                            {visibleStudents.map((student) => (
                                 <tr key={student.id} className="hover:bg-gray-50 transition-colors duration-200">
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{student.name}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{student.age}</td>
@@ -157,6 +158,35 @@ const StudentManagementPage = ({
                             ))}
                         </tbody>
                     </table>
+                </div>
+            )}
+            {shouldPaginateStudents && (
+                <div className="mt-4 flex justify-center items-center gap-3">
+                    <button
+                        onClick={() => setCurrentStudentsPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentStudentsPage === 1}
+                        className={`px-3 py-1.5 rounded-md text-sm font-semibold transition-colors ${
+                            currentStudentsPage === 1
+                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                    >
+                        上一頁
+                    </button>
+                    <span className="text-sm font-semibold text-gray-700">
+                        第 {currentStudentsPage} 頁 / 共 {totalStudentsPages} 頁
+                    </span>
+                    <button
+                        onClick={() => setCurrentStudentsPage(prev => Math.min(totalStudentsPages, prev + 1))}
+                        disabled={currentStudentsPage === totalStudentsPages}
+                        className={`px-3 py-1.5 rounded-md text-sm font-semibold transition-colors ${
+                            currentStudentsPage === totalStudentsPages
+                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                    >
+                        下一頁
+                    </button>
                 </div>
             )}
 

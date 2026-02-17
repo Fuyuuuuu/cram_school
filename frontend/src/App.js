@@ -135,8 +135,6 @@ function App() {
                   studentsToEnroll={studentsToEnroll}
                   setStudentsToEnroll={setStudentsToEnroll}
                   classes={classes}
-                  handlePrintAllPaymentNotices={handlePrintAllPaymentNotices}
-                  handlePrintAllReceipts={handlePrintAllReceipts}
                   showMessage={showMessage}
                   getStudentNameById={getStudentNameById}
                   messageText={messageText}
@@ -200,6 +198,8 @@ function App() {
                   handleChangePaymentStatus={handleChangePaymentStatus}
                   handlePrintReceipt={handlePrintReceipt}
                   handlePrintPaymentNotice={handlePrintPaymentNotice}
+                  handlePrintAllPaymentNotices={handlePrintAllPaymentNotices}
+                  handlePrintAllReceipts={handlePrintAllReceipts}
                   showMessage={showMessage}
                   messageText={messageText}
                   messageType={messageType}
@@ -256,6 +256,7 @@ function App() {
         onClose={() => setShowStudentSummaryModal(false)} 
         data={studentSummaryData} 
         onUpdateAttendanceStatus={handleUpdateAttendanceStatus} 
+        onPrintCourse={handlePrintCombined}
       />
 
       <DailySessionsAttendanceModal

@@ -27,24 +27,27 @@ const DailySessionsAttendanceModal = ({
     };
 
     return (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-50 p-4">
-            <div className="bg-white p-8 rounded-lg shadow-xl max-w-2xl w-full relative">
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 z-[100] overflow-y-auto">
+          <div className="flex min-h-screen items-center justify-center py-8 px-4">
+            <div className="bg-white p-6 sm:p-8 rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto relative">
                 <button
                     onClick={onClose}
-                    className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-2xl font-bold"
+                    type="button"
+                    style={{ position: 'absolute', top: '1rem', right: '1rem', left: 'auto' }}
+                    className="text-gray-500 hover:text-gray-800 text-2xl font-bold"
                 >
                     &times;
                 </button>
-                <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">
+                <h3 className="text-2xl font-bold text-gray-800 mb-5 text-center pr-10">
                     {date.getFullYear()}年{date.getMonth() + 1}月{date.getDate()}日 課程點名
                 </h3>
-                <div className="max-h-96 overflow-y-auto">
+                <div className="max-h-[60vh] overflow-y-auto min-h-0">
                     {sessionsForDate.length === 0 ? (
-                        <p className="text-center text-gray-600">這一天沒有排定的課程。</p>
+                        <p className="text-center text-gray-600 py-2">這一天沒有排定的課程。</p>
                     ) : (
-                        <div className="space-y-4">
+                        <div className="space-y-3">
                             {sessionsForDate.map(session => (
-                                <div key={session.id} className="p-4 border border-blue-200 rounded-lg bg-blue-50 shadow-sm">
+                                <div key={session.id} className="p-3 border border-blue-200 rounded-lg bg-blue-50 shadow-sm">
                                     <h4 className="text-xl font-semibold text-blue-800 mb-2">
                                         {/* session.classId (camelCase) 和 session.actualTeacher (camelCase) */}
                                         {getClassNameById(session.classId)} (老師: {session.actualTeacher || getClassTeacherById(session.classId)})
@@ -66,7 +69,7 @@ const DailySessionsAttendanceModal = ({
                 <div className="flex justify-center mt-6">
                     <button
                         onClick={onClose}
-                        className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-all"
+                        className="px-8 py-3 text-base bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-all"
                     >
                         關閉
                     </button>
@@ -83,6 +86,7 @@ const DailySessionsAttendanceModal = ({
                     classes={classes}
                 />
             </div>
+          </div>
         </div>
     );
 };

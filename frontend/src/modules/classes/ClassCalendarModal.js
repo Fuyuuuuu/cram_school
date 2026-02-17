@@ -106,17 +106,23 @@ const ClassCalendarModal = ({
         .sort((a, b) => new Date(a.date) - new Date(b.date));
 
     return (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-50 p-4">
-            <div className="bg-white p-8 rounded-lg shadow-xl max-w-4xl w-full relative">
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 z-[100] overflow-y-auto">
+          <div className="flex min-h-screen items-center justify-center py-8 px-4">
+            <div
+                className="bg-white p-6 sm:p-8 rounded-xl shadow-xl max-h-[90vh] overflow-y-auto relative"
+                style={{ width: '95vw', maxWidth: '76rem' }}
+            >
                 <button
                     onClick={onClose}
-                    className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-2xl font-bold"
+                    type="button"
+                    style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', left: 'auto' }}
+                    className="text-gray-500 hover:text-gray-800 text-xl font-bold leading-none"
                 >
                     &times;
                 </button>
-                <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">調整課程日期 - {cls.name}</h3>
+                <h3 className="text-xl font-bold text-gray-800 mb-3 text-center pr-8">調整課程日期 - {cls.name}</h3>
 
-                <div className="flex justify-between items-center mb-6">
+                <div className="flex justify-between items-center mb-4">
                     <button
                         onClick={handleModalPrevMonth}
                         className="px-4 py-2 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600 transition-colors"
@@ -198,9 +204,9 @@ const ClassCalendarModal = ({
                 </div>
 
                 {/* 順延課程區塊 */}
-                <div className="mt-8 p-4 border border-purple-200 rounded-lg bg-purple-50">
-                    <h4 className="text-xl font-bold text-purple-800 mb-4 text-center">順延課程 (不增加總堂數)</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="mt-5 p-3 border border-purple-200 rounded-lg bg-purple-50">
+                    <h4 className="text-lg font-bold text-purple-800 mb-2 text-center">順延課程 (不增加總堂數)</h4>
+                    <div className="grid grid-cols-1 gap-3">
                         <div>
                             <label htmlFor="postponeOriginDate" className="block text-sm font-medium text-gray-700 mb-1">
                                 選擇原始課程日期
@@ -209,7 +215,7 @@ const ClassCalendarModal = ({
                                 id="postponeOriginDate"
                                 value={postponeOriginDate}
                                 onChange={(e) => setPostponeOriginDate(e.target.value)}
-                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 text-sm"
                             >
                                 <option value="">-- 請選擇已排定的日期 --</option>
                                 {/* 顯示未順延的課程 */}
@@ -227,7 +233,7 @@ const ClassCalendarModal = ({
                             </select>
                         </div>
                     </div>
-                    <div className="flex justify-center mt-6 space-x-4">
+                    <div className="flex justify-center gap-4 mt-3">
                         <button
                             onClick={() => handlePostponeConfirmed(cls)}
                             className="px-6 py-2 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700 transition-all"
@@ -251,7 +257,7 @@ const ClassCalendarModal = ({
                     </div>
                 </div>
 
-                <div className="flex justify-center mt-6">
+                <div className="flex justify-center mt-4">
                     <button
                         onClick={onClose}
                         className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-all"
@@ -260,6 +266,7 @@ const ClassCalendarModal = ({
                     </button>
                 </div>
             </div>
+          </div>
         </div>
     );
 };

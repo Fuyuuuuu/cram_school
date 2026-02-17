@@ -71,12 +71,15 @@ const CombinedPaymentPrintModal = ({ show, onClose, data, TUITION_CENTER_NAME })
     `;
 
     return (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity50 flex justify-center items-center z-50 p-4">
-            <div className="bg-white p-8 rounded-lg shadow-xl max-w-3xl w-full relative print-container">
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 z-[100] overflow-y-auto">
+          <div className="flex min-h-screen items-center justify-center py-8 px-4">
+            <div className="bg-white p-6 sm:p-8 rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto relative print-container">
                 <style>{printStyles}</style> {/* 應用列印樣式 */}
                 <button
                     onClick={onClose}
-                    className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-2xl font-bold no-print"
+                    type="button"
+                    style={{ position: 'absolute', top: '0.75rem', right: '0.75rem', left: 'auto' }}
+                    className="text-gray-500 hover:text-gray-800 text-2xl font-bold no-print"
                 >
                     &times;
                 </button>
@@ -127,6 +130,7 @@ const CombinedPaymentPrintModal = ({ show, onClose, data, TUITION_CENTER_NAME })
                     </button>
                 </div>
             </div>
+          </div>
         </div>
     );
 };

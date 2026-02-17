@@ -15,7 +15,7 @@ const CalendarOverviewPage = ({
     today.setHours(0, 0, 0, 0); 
 
     return (
-        <div className="bg-white p-8 rounded-xl shadow-2xl transition-all duration-500 ease-in-out transform hover:scale-105">
+        <div className="bg-white p-8 rounded-xl shadow-2xl transition-all duration-500 ease-in-out max-w-full overflow-hidden">
             <h2 className="text-3xl font-extrabold text-gray-800 mb-6 text-center">日曆總覽</h2>
             <MessageDisplay msg={messageText} type={messageType} />
 
