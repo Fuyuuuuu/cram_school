@@ -1228,8 +1228,17 @@ const useTuitionData = () => {
                 return;
             }
 
+            // 後端 TransactionUpdate 要求完整欄位，故傳送完整交易並只覆寫 due_date
             const transactionPayload = {
-                due_date: formatDateToLocalISO(newDueDate), // newDueDate 是字符串，這裡直接使用
+                due_date: formatDateToLocalISO(newDueDate),
+                record_date: transactionToUpdate.recordDate ? formatDateToLocalISO(transactionToUpdate.recordDate) : null,
+                student_id: transactionToUpdate.studentId,
+                class_id: transactionToUpdate.classId,
+                amount: transactionToUpdate.amount,
+                description: transactionToUpdate.description,
+                payment_term: transactionToUpdate.paymentTerm,
+                status: transactionToUpdate.status,
+                installment: transactionToUpdate.installment,
             };
 
             await transactionApi.update(transactionId, transactionPayload);
