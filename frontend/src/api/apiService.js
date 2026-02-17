@@ -1,7 +1,7 @@
 // API 基礎 URL：本地開網頁時一律連 http://localhost:8000，部署後用 /api
 function getApiBaseUrl() {
     if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-        return process.env.REACT_APP_BACKEND_API_URL || 'http://localhost:8001';
+        return process.env.REACT_APP_BACKEND_API_URL || 'http://localhost:8000';
     }
     return process.env.REACT_APP_BACKEND_API_URL || '/api';
 }
@@ -35,6 +35,13 @@ const api = async (endpoint, method = 'GET', data = null) => {
     try {
         console.log(`Sending ${method} request to: ${url}`, data ? data : ''); // 調試訊息
         const response = await fetch(url, config);
+        const contentType = response.headers.get('Content-Type') || '';
+        const bodyText = await response.text();
+
+        // #region agent log
+        const bodyPreview = bodyText.length > 400 ? bodyText.slice(0, 400) + '...' : bodyText;
+        fetch('http://127.0.0.1:7242/ingest/8621c8ca-91a6-47f0-8599-71a9cd265911', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'apiService.js:api', message: 'API response before JSON parse', data: { url, method, status: response.status, contentType, bodyPreview }, timestamp: Date.now(), hypothesisId: 'H1-H5' }) }).catch(() => {});
+        // #endregion
 
         // 對於 204 No Content 響應，不嘗試解析 JSON
         if (response.status === 204) {
@@ -42,7 +49,15 @@ const api = async (endpoint, method = 'GET', data = null) => {
             return null;
         }
 
-        const responseData = await response.json(); // 嘗試解析 JSON
+        let responseData;
+        try {
+            responseData = bodyText ? JSON.parse(bodyText) : null;
+        } catch (parseErr) {
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/8621c8ca-91a6-47f0-8599-71a9cd265911', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'apiService.js:api', message: 'JSON parse failed', data: { url, status: response.status, contentType, bodyPreview, parseError: String(parseErr.message) }, timestamp: Date.now(), hypothesisId: 'H5' }) }).catch(() => {});
+            // #endregion
+            throw new Error(`後端回傳非 JSON（${response.status}）: ${bodyPreview.slice(0, 80)}${bodyPreview.length > 80 ? '...' : ''}`);
+        }
 
         if (!response.ok) {
             // 如果響應狀態碼不是 2xx，拋出錯誤
